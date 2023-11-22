@@ -100,21 +100,18 @@ class Utils:
 
 
     def compare(templates1, templates2) -> bool:
-        minutia_value = [] # contains what idx of minutia and number of neighbors are matched if both minutiae matched
-        # ? comparing minutia
+        # ? comparing minutia globally
+        global_matched = []
         for minutia1_index, minutia1 in enumerate(templates1):
-            center_value = []
             for minutia2_index, minutia2 in enumerate(templates2):
                 if minutia1.type != minutia2.type:
                     continue
-
-                # ? comparing neighbor seeing if minutia1 and minutia2 are the same center
+                # ? comparing minutia locally
+                local_matched = []
                 for neighbor1_index, neighbor1 in enumerate(minutia1.neighbors):
-                    neighbor_value = []
                     for neighbor2_index, neighbor2 in enumerate(minutia2.neighbors):
                         if neighbor1[0] != neighbor2[0]:
                             continue
-
                         delta_r = Helper.get_delta_r(neighbor1[1], neighbor2[1])
                         delta_a = Helper.get_delta_a(neighbor1[2], neighbor2[2])
                         delta_b = Helper.get_delta_b(neighbor1[3], neighbor2[3])
@@ -123,44 +120,51 @@ class Utils:
                         delta_f = Helper.get_delta_f(delta_a, delta_r, delta_b)
                         if delta_f > T_DIS:
                             continue
-                        
                         # getting every neighbor's Δf for neighbor1 as center
-                        neighbor_value.append([neighbor1_index, neighbor2_index, delta_f]) 
-
-                    center_value.append(neighbor_value)
+                        local_matched.append(
+                            [neighbor1_index, neighbor2_index, delta_f]
+                        )
                 
-                temp = []
-                for i in center_value:
-                    for j in i:
-                        temp.append([j[0], j[1], j[2]])
-
-                # ? Sort based on the third element (Δf) of each sublist
-                sorted_data = sorted(temp, key=lambda x: x[2])  
-
-                selected1 = []
-                selected2 = []
-                number_of_neighbor_matched = 0
-                for i in sorted_data:
-                    if i[0] not in selected1 and i[1] not in selected2:
-                        selected1.append(i[0])
-                        selected2.append(i[1])
-                        number_of_neighbor_matched += 1
-                    elif i[0] in selected1 or i[1] in selected2:
+                # ? sort by Δf (ASC)
+                local_matched = sorted(local_matched, key=lambda x: x[2])
+                # ? matching one to one neighbor
+                selected_neighbor1, selected_neighbor2 = [], []
+                for i in local_matched:
+                    if i[0] not in selected_neighbor1 and i[1] not in selected_neighbor2:
+                        selected_neighbor1.append(i[0])
+                        selected_neighbor2.append(i[1])
+                    else:
                         continue
 
-                if number_of_neighbor_matched < T_LAMBDA:
-                    continue
-                
-                print(f'MINUTIA {minutia1_index} X MINUTIA {minutia2_index}')
-                for i in sorted_data:
-                    print(f'index_i:{i[0]}, index_j:{i[1]}, Δf:{i[2]}')
-                print(selected1, len(selected1))
-                print(selected2, len(selected2))
-                print(f'number match:{number_of_neighbor_matched}')
-                print()
+                if len(selected_neighbor1) < T_LAMBDA: continue
+                # print(f'CENTER {minutia1_index} X CENTER {minutia2_index}')
+                # print(len(selected_neighbor1))
+                # for i in local_matched:
+                #     print(i)
+                # print(selected_neighbor1)
+                # print(selected_neighbor2)
+                # print()
+                global_matched.append([minutia1_index, minutia2_index, len(selected_neighbor1)])
 
-                minutia_value.append([minutia1_index, minutia2_index, number_of_neighbor_matched])
+        # ? sort by number of matched locals (DESC)
+        global_matched = sorted(global_matched, key=lambda x: -x[2])
+        # ? matching one to one minutia
+        selected_minutia1, selected_minutia2 = [], []
+        for i in global_matched:
+            if i[0] not in selected_minutia1 and i[1] not in selected_minutia2:
+                selected_minutia1.append(i[0])
+                selected_minutia2.append(i[1])
+            else:
+                continue
+        if len(selected_minutia1) < T_N: 
+            return False
+        return True
 
-        for i in minutia_value:
-            print(i)
+        print(len(selected_minutia1))
+        print(selected_minutia1)
+        print(selected_minutia2)
+        # for i in global_matched:
+        #     print(i)
+            #     break
+            # break
         pass

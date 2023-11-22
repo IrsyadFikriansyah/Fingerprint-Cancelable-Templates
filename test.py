@@ -16,11 +16,4 @@ minutiae1.make_template(file_path1, mykeys)
 minutiae2.make_template(file_path2, mykeys)
 
 # print(minutiae1.templates.__dict__)
-Utils.compare(minutiae1.templates, minutiae2.templates)
-
-
-
-
-# minutiae1.print_data()
-# minutiae1.print_transformed()
-# minutiae1.print_template()
+print(Utils.compare(minutiae1.templates, minutiae2.templates))
