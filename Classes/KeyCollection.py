@@ -27,9 +27,11 @@ class KeyCollection:
     def generate_key(self) -> None:
         self.key = [
             [
-                [random.randint(1, SECTOR - 1),
-                 random.randint(0, 10),
-                 random.randint(0, 10)]
+                [
+                    random.randint(1, SECTOR - 1),
+                    random.randint(0, 10),
+                    random.randint(0, 10)
+                ]
                 for _ in range(SECTOR)
             ]
             for _ in range(LAYER)
